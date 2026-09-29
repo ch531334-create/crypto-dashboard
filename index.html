@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>QuantCrypto 2.0 量化交易 8 大關卡監控中心</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background-color: #030712; color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding-bottom: 40px; -webkit-font-smoothing: antialiased; }
+  .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  header { background-color: #111827; border-bottom: 1px solid #1f2937; padding: 12px 16px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px); }
+  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .logo-title { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; background: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 13px; flex-shrink: 0; }
+  .main-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .sub-title { font-size: 11px; color: #9ca3af; }
+  .badge-live { background: #064e3b; color: #34d399; border: 1px solid #059669; font-size: 10px; padding: 2px 6px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px; }
+  .pulse-dot { width: 5px; height: 5px; background: #34d399; border-radius: 50%; display: inline-block; }
+  .container { max-width: 1200px; margin: 16px auto; padding: 0 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (min-width: 768px) {
+    .grid-4 { grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .header-inner { padding: 4px 0; }
+    .main-title { font-size: 16px; }
+    .logo-icon { width: 36px; height: 36px; font-size: 15px; }
+    .container { margin: 24px auto; padding: 0 16px; }
+  }
+  .grid-8 { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; margin-top: 14px; }
+  @media (min-width: 640px) { .grid-8 { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .grid-8 { grid-template-columns: repeat(4, 1fr); gap: 12px; } }
+  .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+  @media (min-width: 768px) { .card { padding: 20px; } }
+  .card-title { font-size: 11px; color: #9ca3af; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+  .card-value { font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 2px; }
+  @media (min-width: 768px) { .card-value { font-size: 24px; } .card-title { font-size: 12px; } }
+  .card-sub { font-size: 11px; color: #10b981; }
+  .gate-card { background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; }
+  .gate-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .gate-tag { font-size: 10px; font-weight: 700; background: #064e3b; color: #34d399; padding: 1px 6px; border-radius: 4px; }
+  .gate-name { font-size: 12px; font-weight: 600; color: #f9fafb; margin-bottom: 2px; }
+  .gate-desc { font-size: 10px; color: #9ca3af; line-height: 1.35; }
+  .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 8px; }
+  table { width: 100%; min-width: 600px; border-collapse: collapse; text-align: left; font-size: 12px; }
+  th { background: #1f2937; color: #9ca3af; padding: 10px; font-size: 10px; text-transform: uppercase; border-bottom: 1px solid #374151; white-space: nowrap; }
+  td { padding: 10px; border-bottom: 1px solid #1f2937; white-space: nowrap; }
+  tr:hover { background: rgba(31, 41, 55, 0.6); }
+  .tag-green { background: #064e3b; color: #34d399; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .tag-gray { background: #374151; color: #d1d5db; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+  .chart-box { width: 100%; overflow-x: auto; background: #0b0f19; border-radius: 8px; padding: 12px 6px; border: 1px solid #1f2937; margin-top: 10px; }
+  svg { display: block; width: 100%; height: auto; min-height: 220px; max-height: 300px; }
+  .legend-box { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 11px; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo-title">
+        <div class="logo-icon">QC</div>
+        <div>
+          <div class="main-title">QuantCrypto 2.0 審查中心 <span class="badge-live"><span class="pulse-dot"></span> 運行中</span></div>
+          <div class="sub-title">BTC + ETH + SOL 三幣組合 | 8 大審查關卡</div>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: #9ca3af;" class="font-mono">定時: 每日 11:00 AM</div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="grid-4">
+      <div class="card">
+        <div class="card-title">監控資產池</div>
+        <div class="card-value font-mono">BTC/ETH/SOL</div>
+        <div class="card-sub">三幣等權重風險平準</div>
+      </div>
+      <div class="card">
+        <div class="card-title">最高夏普比率</div>
+        <div class="card-value font-mono" style="color: #c084fc;">Sharpe 2.19</div>
+        <div class="card-sub" style="color: #c084fc;">RSI 三幣組合</div>
+      </div>
+      <div class="card">
+        <div class="card-title">最大回撤 (MDD)</div>
+        <div class="card-value font-mono" style="color: #34d399;">-10.6%</div>
+        <div class="card-sub">回撤大幅收斂</div>
+      </div>
+      <div class="card">
+        <div class="card-title">部位管理引擎</div>
+        <div class="card-value font-mono" style="color: #60a5fa;">ATR 動態調倉</div>
+        <div class="card-sub" style="color: #93c5fd;">3.5% / ATR</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <h2 style="font-size: 14px; font-weight: 700; color: #ffffff;">機構量化 8 大審查關卡 (8-Gate Pipeline)</h2>
+        <span style="font-size: 10px; color: #34d399; background: #064e3b; padding: 2px 6px; border-radius: 4px;">Gate 6 抗暴跌全數通過</span>
+      </div>
+      
+      <div class="grid-8">
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag">Gate 01</span> <span style="color:#34d399; font-size:11px;">✓ 通過</span></div>
+          <div class="gate-name">數據治理與插針清洗</div>
+          <div class="gate-desc">過濾 Bad Ticks 與假插針，杜絕前瞻偏差。</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag">Gate 02</span> <span style="color:#34d399; font-size:11px;">✓ 通過</span></div>
+          <div class="gate-name">Alpha 統計顯著性</div>
+          <div class="gate-desc">驗證 IC ≥ 0.04、t-stat > 3.0。</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag">Gate 03</span> <span style="color:#34d399; font-size:11px;">✓ 通過</span></div>
+          <div class="gate-name">參數敏感度防過擬合</div>
+          <div class="gate-desc">週期 ±10% 擾動績效平穩。</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag">Gate 04</span> <span style="color:#34d399; font-size:11px;">✓ 通過</span></div>
+          <div class="gate-name">組合相關性與去共線</div>
+          <div class="gate-desc">三幣不完全相關性有效分散波動。</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag">Gate 05</span> <span style="color:#34d399; font-size:11px;">✓ 通過</span></div>
+          <div class="gate-name">費率摩擦與容量評估</div>
+          <div class="gate-desc">扣除雙向 0.1% 摩擦成本後淨獲利。</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag">Gate 06</span> <span style="color:#34d399; font-size:11px;">✓ 通過</span></div>
+          <div class="gate-name">極端黑天鵝抗暴跌</div>
+          <div class="gate-desc">ATR 調倉將回撤全數壓低至 -10%~-21%。</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag" style="background:#1e3a8a; color:#93c5fd;">Gate 07</span> <span style="color:#60a5fa; font-size:11px;">⏳ 進行中</span></div>
+          <div class="gate-name">每日前向影子盤驗證</div>
+          <div class="gate-desc">每日 11:00 以未公開新數據推進中。</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header"><span class="gate-tag">Gate 08</span> <span style="color:#34d399; font-size:11px;">✓ 就緒</span></div>
+          <div class="gate-name">實盤 API 熔斷授權</div>
+          <div class="gate-desc">單日 -3% 自動停機熔斷保護就緒。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <h2 style="font-size: 14px; font-weight: 700; color: #ffffff;">5 大模型即時評測與訊號表</h2>
+        <span style="font-size: 10px; color: #9ca3af;">← 手機可左右滑動 →</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>模型名稱 (三幣組合)</th>
+              <th>策略類型</th>
+              <th>年化報酬 (CAGR)</th>
+              <th>最大回撤 (MDD)</th>
+              <th>夏普比率</th>
+              <th>8關卡審核</th>
+              <th>最新訊號</th>
+            </tr>
+          </thead>
+          <tbody class="font-mono">
+            <tr style="background: rgba(88, 28, 135, 0.25);">
+              <td style="color:#ffffff; font-weight: 600;">RSI 擺動策略</td>
+              <td style="color:#d1d5db;">動態擺動 + ATR調倉</td>
+              <td style="color:#34d399; font-weight: 700;">+51.80%</td>
+              <td style="color:#34d399; font-weight: 700;">-10.60%</td>
+              <td style="color:#c084fc; font-weight: 700;">2.19</td>
+              <td><span class="tag-green">🌟 8/8 關 (冠軍)</span></td>
+              <td><span class="tag-green">● 持倉 (Long)</span></td>
+            </tr>
+            <tr>
+              <td style="color:#ffffff; font-weight: 600;">唐奇安通道突破</td>
+              <td style="color:#d1d5db;">通道突破 + ATR調倉</td>
+              <td style="color:#fbbf24; font-weight: 700;">+41.80%</td>
+              <td style="color:#34d399;">-21.10%</td>
+              <td style="color:#ffffff;">1.43</td>
+              <td><span class="tag-green">8/8 關</span></td>
+              <td><span class="tag-green">● 持倉 (Long)</span></td>
+            </tr>
+            <tr>
+              <td style="color:#ffffff; font-weight: 600;">SuperTrend 自適應</td>
+              <td style="color:#d1d5db;">波動自適應</td>
+              <td style="color:#ffffff;">+48.20%</td>
+              <td style="color:#34d399;">-22.50%</td>
+              <td style="color:#ffffff;">1.38</td>
+              <td><span class="tag-green">8/8 關</span></td>
+              <td><span class="tag-gray">○ 觀望 (Cash)</span></td>
+            </tr>
+            <tr>
+              <td style="color:#ffffff; font-weight: 600;">雙均線動量 (10/30)</td>
+              <td style="color:#d1d5db;">趨勢追蹤</td>
+              <td style="color:#ffffff;">+36.50%</td>
+              <td style="color:#d1d5db;">-24.10%</td>
+              <td style="color:#ffffff;">1.12</td>
+              <td><span class="tag-green">7/8 關</span></td>
+              <td><span class="tag-gray">○ 觀望 (Cash)</span></td>
+            </tr>
+            <tr>
+              <td style="color:#ffffff; font-weight: 600;">布林通道均值回歸</td>
+              <td style="color:#d1d5db;">均值回歸</td>
+              <td style="color:#ffffff;">+15.00%</td>
+              <td style="color:#34d399;">-22.40%</td>
+              <td style="color:#ffffff;">0.76</td>
+              <td><span class="tag-green">6/8 關</span></td>
+              <td><span class="tag-gray">○ 觀望 (Cash)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+        <h2 style="font-size: 14px; font-weight: 700; color: #ffffff;">資產回測曲線走勢 (2023 - 2026)</h2>
+        <div class="legend-box font-mono">
+          <span style="color: #c084fc; font-weight: 600;">■ RSI三幣 (2.19)</span>
+          <span style="color: #fbbf24; font-weight: 600;">■ 唐奇安 (1.43)</span>
+          <span style="color: #6b7280; font-weight: 600;">■ BTC基準</span>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <svg viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="rsiGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c084fc" stop-opacity="0.28"/>
+              <stop offset="100%" stop-color="#c084fc" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+
+          <line x1="55" y1="40" x2="880" y2="40" stroke="#1f2937" stroke-width="1"/>
+          <text x="10" y="44" fill="#6b7280" font-size="11" font-family="monospace">$100k</text>
+
+          <line x1="55" y1="88" x2="880" y2="88" stroke="#1f2937" stroke-width="1"/>
+          <text x="10" y="92" fill="#6b7280" font-size="11" font-family="monospace">$80k</text>
+
+          <line x1="55" y1="136" x2="880" y2="136" stroke="#1f2937" stroke-width="1"/>
+          <text x="10" y="140" fill="#6b7280" font-size="11" font-family="monospace">$60k</text>
+
+          <line x1="55" y1="184" x2="880" y2="184" stroke="#1f2937" stroke-width="1"/>
+          <text x="10" y="188" fill="#6b7280" font-size="11" font-family="monospace">$40k</text>
+
+          <line x1="55" y1="232" x2="880" y2="232" stroke="#1f2937" stroke-width="1"/>
+          <text x="10" y="236" fill="#6b7280" font-size="11" font-family="monospace">$20k</text>
+
+          <text x="55" y="260" fill="#6b7280" font-size="11" font-family="monospace">2023</text>
+          <text x="260" y="260" fill="#6b7280" font-size="11" font-family="monospace">2024</text>
+          <text x="465" y="260" fill="#6b7280" font-size="11" font-family="monospace">2025</text>
+          <text x="670" y="260" fill="#6b7280" font-size="11" font-family="monospace">2026</text>
+          <text x="835" y="260" fill="#6b7280" font-size="11" font-family="monospace">Today</text>
+
+          <path d="M 55.0 238.0 L 113.9 229.2 L 172.8 230.3 L 231.6 222.6 L 290.5 207.2 L 349.4 202.8 L 408.3 205.0 L 467.1 191.8 L 526.0 176.4 L 584.9 167.6 L 643.8 169.8 L 702.6 152.2 L 761.5 145.6 L 820.4 141.2 L 870.0 132.4" 
+                fill="none" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+          <path d="M 55.0 238.0 L 113.9 231.4 L 172.8 228.8 L 231.6 219.3 L 290.5 207.2 L 349.4 199.5 L 408.3 198.4 L 467.1 178.6 L 526.0 159.9 L 584.9 150.0 L 643.8 147.8 L 702.6 121.4 L 761.5 110.4 L 820.4 98.3 L 870.0 86.2" 
+                fill="none" stroke="#fbbf24" stroke-width="2.2"/>
+
+          <path d="M 55.0 238.0 L 113.9 228.1 L 172.8 224.4 L 231.6 214.9 L 290.5 201.7 L 349.4 191.8 L 408.3 186.3 L 467.1 168.7 L 526.0 151.1 L 584.9 137.9 L 643.8 132.4 L 702.6 108.2 L 761.5 93.9 L 820.4 81.8 L 870.0 63.1 L 870.0 240 L 55.0 240 Z" 
+                fill="url(#rsiGrad)"/>
+
+          <path d="M 55.0 238.0 L 113.9 228.1 L 172.8 224.4 L 231.6 214.9 L 290.5 201.7 L 349.4 191.8 L 408.3 186.3 L 467.1 168.7 L 526.0 151.1 L 584.9 137.9 L 643.8 132.4 L 702.6 108.2 L 761.5 93.9 L 820.4 81.8 L 870.0 63.1" 
+                fill="none" stroke="#c084fc" stroke-width="3"/>
+
+          <circle cx="870.0" cy="63.1" r="5" fill="#c084fc" stroke="#ffffff" stroke-width="2"/>
+          <text x="800" y="50" fill="#c084fc" font-size="12" font-weight="700" font-family="monospace">$89,500</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
